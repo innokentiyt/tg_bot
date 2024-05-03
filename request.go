@@ -9,15 +9,15 @@ import (
 	"strconv"
 )
 
-func requestReactions(bot_key string) (error, []Update) {
+func requestUpdates(bot_key string) (error, []Update) {
 	var buf bytes.Buffer
 	offset := 0
 	params := map[string]string {
 		"offset": strconv.Itoa(offset),
 	}
 	allowed_updates := []string {
+		"message",
 		"message_reaction",
-		//"message_reaction_count",
 	}
 	data, err := json.Marshal(allowed_updates)
 	if err != nil {
@@ -60,6 +60,6 @@ func requestReactions(bot_key string) (error, []Update) {
 		fmt.Println("Error serializing response:\n", err)
 		return err, nil
 	}
-	fmt.Println(string(body))
+	//fmt.Println(string(body))
 	return nil, tg_response.Result
 }

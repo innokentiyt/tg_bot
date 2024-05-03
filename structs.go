@@ -2,8 +2,36 @@ package main
 
 // === telegram structs ===
 
+
+//
+   //{
+   //   "update_id": 579421648,
+   //   "message": {
+   //     "message_id": 1214302,
+   //     "from": {
+   //       "id": 1683199658,
+   //       "is_bot": false,
+   //       "first_name": "Андрей",
+   //       "last_name": "Солженицын",
+   //       "username": "magic_frontier"
+   //     },
+   //   }
+   // },
+
 type Chat struct {
 	ID int `json:"id"`
+}
+
+type MessageEntity struct {
+	Type string `json:"type"`
+}
+
+type Message struct {
+	MessageID int `json:"message_id"`
+	From User `json:"from,omitempty"`
+	Entities []MessageEntity `json:"entities,omitempty"`
+	Text string `json:"text,omitempty"`
+	Chat Chat `json:"chat"`
 }
 
 type User struct {
@@ -27,23 +55,31 @@ type MessageReactionUpdated struct {
 
 type Update struct {
 	ID int64 `json:"update_id"`
-	MessageReaction MessageReactionUpdated `json:"message_reaction"`
+	MessageReaction MessageReactionUpdated `json:"message_reaction,omitempty"`
+	Message Message `json:"message,omitempty"`
 }
 
 // ==== local save structs 
 
-type ReactionData struct {
-	Type string `json:"type"`
-	Count int `json:"count"`
-	ID int `json:"id"`
+type MessageData struct {
+	Reactions []ReactionType `json:"reactions"`
+	MessageId int `json:"message_id"`
 }
 
 type UserData struct {
-	ID int64 `json:"id"`
+	ID int `json:"id"`
 	Name string `json:"name"`
-	Reactions []ReactionData `json:"reactions"`
+	Messages []MessageData `json:"messages"`
 }
 
-type UsersSave struct {
+type Database struct {
 	Users []UserData `json:"users"`
 }
+
+// ====== internal
+
+type MessageQuery struct {
+	message_id int
+	reactions []ReactionType
+}
+
