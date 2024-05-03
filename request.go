@@ -60,8 +60,6 @@ func requestReactions(bot_key string) (error, []Update) {
 		fmt.Println("Error serializing response:\n", err)
 		return err, nil
 	}
-//	for _, update := range tg_response.Result {
-//		fmt.Println("Update id: ", update.ID, " user: ", update.MessageReaction.User.FirstName)
-//	}
+	fmt.Println(string(body))
 	return nil, tg_response.Result
 }
