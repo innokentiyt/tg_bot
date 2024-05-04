@@ -3,37 +3,68 @@ package main
 import (
 	"fmt"
 	"slices"
+	"sort"
+	"strconv"
 	"strings"
 )
 
+var okReaction string = "👌"
+var clownReaction string = "🤡"
+
+func generateReaction(emoji string) []ReactionType {
+	return []ReactionType {
+		{"emoji", emoji},
+	}
+}
+
+func processGratzMsg(u Update) {
+	user := u.Message.ReplyMsg.From
+	send_user := u.Message.From
+
+	if user.ID == send_user.ID {
+		err := setMessageReaction(u.Message.MessageID, u.Message.Chat.ID, generateReaction(clownReaction))
+		if err != nil {
+			fmt.Println("Error sending reaction", err)
+		}
+		return
+	}
+	appendGratz(user)
+	err := setMessageReaction(u.Message.MessageID, u.Message.Chat.ID, generateReaction(okReaction))
+	if err != nil {
+		fmt.Println("Error sending reaction", err)
+	}
+}
+
+func processTopMsg(u Update) {
+	var msg string
+	type Top struct {
+		UserName string
+		Amount int
+	}
+	var users []Top
+	for _, user := range my_db.Users {
+		users = append(users, Top{user.Name, user.Gratz})
+	}
+
+	sort.Slice(users, func(i, j int) bool {
+		return users[i].Amount > users[j].Amount
+	})
+
+	for i, user := range users {
+		msg += strconv.Itoa(i) + ".  " + user.UserName + ": " + strconv.Itoa(user.Amount) + "\n"
+	}
+	sendMessage(u.Message.Chat.ID, msg)
+}
+
 func processUpdates(updates []Update, channel_id int) {
-	var messages_to_check []MessageQuery
-	for _, update := range updates {
-		if update.MessageReaction.Chat.ID != channel_id {
-			continue
-		}
-		query := MessageQuery{
-			update.MessageReaction.Message_id,
-			update.MessageReaction.NewReaction,
-		}
-		messages_to_check = append(messages_to_check, query)
-	}
-
-	for _, query := range messages_to_check {
-		idx := slices.IndexFunc(updates, func(u Update) bool {
-			return u.Message.MessageID == query.message_id
-		})
-		if idx < 0 {
-			fmt.Println("Tried searching", query.message_id, "but it was unavailable")
-			continue
-		}
-		user := updates[idx].Message.From
-		addToDatabase(user, query.reactions, query.message_id)
-	}
-
 	for _, update := range updates {
 		if update.Message.Chat.ID != channel_id {
 			continue
+		}
+		fmt.Println(update.Message.Text)
+		if update.Message.Text == "грац" {
+			processGratzMsg(update)
+			return
 		}
 		idx := slices.IndexFunc(update.Message.Entities, func(m MessageEntity) bool {
 			return m.Type == "bot_command"
@@ -41,10 +72,13 @@ func processUpdates(updates []Update, channel_id int) {
 		if idx < 0 {
 			continue
 		}
-		//fmt.Println(update.Message.Text)
 		if strings.Contains(update.Message.Text, "gratz") {
-			top_msg := getSortedTopListAsString("👍")
-			fmt.Println(top_msg)
+			processGratzMsg(update)
+			return
+		}
+		if strings.Contains(update.Message.Text, "top") {
+			processTopMsg(update)
+			return
 		}
 	}
 }

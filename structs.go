@@ -26,12 +26,18 @@ type MessageEntity struct {
 	Type string `json:"type"`
 }
 
+type ReplyMessage struct {
+	MessageID int `json:"message_id"`
+	From User `json:"from,omitempty"`
+}
+
 type Message struct {
 	MessageID int `json:"message_id"`
 	From User `json:"from,omitempty"`
 	Entities []MessageEntity `json:"entities,omitempty"`
 	Text string `json:"text,omitempty"`
 	Chat Chat `json:"chat"`
+	ReplyMsg ReplyMessage `json:"reply_to_message,omitempty"`
 }
 
 type User struct {
@@ -61,25 +67,11 @@ type Update struct {
 
 // ==== local save structs 
 
-type MessageData struct {
-	Reactions []ReactionType `json:"reactions"`
-	MessageId int `json:"message_id"`
+type UsersData struct {
+	Users map[string]UserInfo `json:"Users"`
 }
 
-type UserData struct {
-	ID int `json:"id"`
-	Name string `json:"name"`
-	Messages []MessageData `json:"messages"`
+type UserInfo struct {
+	Gratz int    `json:"gratz"`
+	Name  string `json:"name"`
 }
-
-type Database struct {
-	Users []UserData `json:"users"`
-}
-
-// ====== internal
-
-type MessageQuery struct {
-	message_id int
-	reactions []ReactionType
-}
-
