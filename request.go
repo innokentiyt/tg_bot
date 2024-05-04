@@ -9,14 +9,13 @@ import (
 	"strconv"
 )
 
-func requestUpdates(bot_key string) (error, []Update) {
+func requestUpdates(bot_key string, offset int) (error, []Update) {
 	var buf bytes.Buffer
-	offset := 0
 	params := map[string]string {
 		"offset": strconv.Itoa(offset),
 	}
 	allowed_updates := []string {
-		"message",
+		//"message",
 		"message_reaction",
 	}
 	data, err := json.Marshal(allowed_updates)
@@ -60,6 +59,6 @@ func requestUpdates(bot_key string) (error, []Update) {
 		fmt.Println("Error serializing response:\n", err)
 		return err, nil
 	}
-	//fmt.Println(string(body))
+	fmt.Println(string(body))
 	return nil, tg_response.Result
 }

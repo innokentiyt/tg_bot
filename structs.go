@@ -54,7 +54,7 @@ type MessageReactionUpdated struct {
 }
 
 type Update struct {
-	ID int64 `json:"update_id"`
+	ID int `json:"update_id"`
 	MessageReaction MessageReactionUpdated `json:"message_reaction,omitempty"`
 	Message Message `json:"message,omitempty"`
 }

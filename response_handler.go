@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"slices"
+	"strings"
 )
 
 func processUpdates(updates []Update, channel_id int) {
@@ -40,6 +41,10 @@ func processUpdates(updates []Update, channel_id int) {
 		if idx < 0 {
 			continue
 		}
-		fmt.Println(update.Message.Text)
+		//fmt.Println(update.Message.Text)
+		if strings.Contains(update.Message.Text, "gratz") {
+			top_msg := getSortedTopListAsString("👍")
+			fmt.Println(top_msg)
+		}
 	}
 }

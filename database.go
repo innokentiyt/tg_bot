@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"os"
 	"slices"
+	"sort"
+	"strconv"
 )
 
 var my_db Database
@@ -64,4 +66,47 @@ func saveDatabase() {
 	if err != nil {
 		fmt.Println("Error saving db:", err)
 	}
+}
+
+func getSortedTopListAsString(emoji string) string {
+	var result string
+
+	count_map := countEmojiReactions(my_db.Users, emoji)
+
+	type SortStruct struct {
+		Key string
+		Value int
+	}
+	var emoji_reactions []SortStruct
+
+	for k,v := range count_map {
+		emoji_reactions = append(emoji_reactions, SortStruct{k,v})
+	}
+
+	sort.Slice(emoji_reactions, func(i, j int) bool {
+		return emoji_reactions[i].Value > emoji_reactions[j].Value
+	})
+	for i,s := range emoji_reactions {
+		result += strconv.Itoa(i+1) + ". " + s.Key + ": " + strconv.Itoa(s.Value) + "\n"
+	}
+
+	return result
+}
+
+func countEmojiReactions(users []UserData, emoji string) map[string]int {
+	emojiReactionCount := make(map[string]int)
+
+	for _, user := range users {
+		count := 0
+		for _, message := range user.Messages {
+			for _, reaction := range message.Reactions {
+				if reaction.Type == "emoji" && reaction.Emoji == emoji {
+					count++
+				}
+			}
+		}
+		emojiReactionCount[user.Name] = count
+	}
+
+	return emojiReactionCount
 }

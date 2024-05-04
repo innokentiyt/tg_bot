@@ -19,16 +19,23 @@ func main() {
 		fmt.Println("Error reading temp database:", err)
 		saveDatabase()
 	}
-
+	offset := 0
 	for {
-		err, updates := requestUpdates(bot_token)
+		err, updates := requestUpdates(bot_token, offset)
 		if err != nil {
 			fmt.Println("Some error happened:\n", err)
 			time.Sleep(5 * time.Second)
 			continue
 		}
 
-		processUpdates(updates, channel_id)
+
+		if len(updates) > 0 {
+			processUpdates(updates, channel_id)
+			last_index := len(updates) - 1
+			last_element := updates[last_index]
+			offset = last_element.ID
+		}
+
 
 		time.Sleep(5 * time.Second)
 	}
