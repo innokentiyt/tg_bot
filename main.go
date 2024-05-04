@@ -23,7 +23,6 @@ func main() {
 	}
 	offset := 0
 	for {
-		fmt.Println("Requesting updates...")
 		err, updates := requestUpdates(offset)
 		if err != nil {
 			fmt.Println("Some error happened:\n", err)

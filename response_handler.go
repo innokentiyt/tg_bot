@@ -2,14 +2,16 @@ package main
 
 import (
 	"fmt"
+	"math/rand"
 	"slices"
 	"sort"
 	"strconv"
 	"strings"
 )
 
-var okReaction string = "👌"
-var clownReaction string = "🤡"
+var reaction_ok string = "👌"
+var reaction_clown string = "🤡"
+var twenty_last_updates [20]Update
 
 func generateReaction(emoji string) []ReactionType {
 	return []ReactionType {
@@ -22,14 +24,14 @@ func processGratzMsg(u Update) {
 	send_user := u.Message.From
 
 	if user.ID == send_user.ID {
-		err := setMessageReaction(u.Message.MessageID, u.Message.Chat.ID, generateReaction(clownReaction))
+		err := setMessageReaction(u.Message.MessageID, u.Message.Chat.ID, generateReaction(reaction_clown))
 		if err != nil {
 			fmt.Println("Error sending reaction", err)
 		}
 		return
 	}
 	appendGratz(user)
-	err := setMessageReaction(u.Message.MessageID, u.Message.Chat.ID, generateReaction(okReaction))
+	err := setMessageReaction(u.Message.MessageID, u.Message.Chat.ID, generateReaction(reaction_ok))
 	if err != nil {
 		fmt.Println("Error sending reaction", err)
 	}
@@ -61,6 +63,7 @@ func processUpdates(updates []Update, channel_id int) {
 		if update.Message.Chat.ID != channel_id {
 			continue
 		}
+		
 		fmt.Println(update.Message.Text)
 		if update.Message.Text == "грац" {
 			processGratzMsg(update)
@@ -70,6 +73,7 @@ func processUpdates(updates []Update, channel_id int) {
 			return m.Type == "bot_command"
 		})
 		if idx < 0 {
+			chanceOfRain(update)
 			continue
 		}
 		if strings.Contains(update.Message.Text, "gratz") {
@@ -81,4 +85,13 @@ func processUpdates(updates []Update, channel_id int) {
 			return
 		}
 	}
+}
+
+func chanceOfRain(u Update) {
+	var probability float32 = 0.01 // 1% chance
+	random_value := rand.Float32()
+	if random_value >= probability {
+		return
+	}
+	sendLLMAnswer(u)
 }

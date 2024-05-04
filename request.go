@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"os"
 	"strconv"
 )
 
@@ -95,7 +96,7 @@ func setMessageReaction(message_id int, chat_id int, reaction []ReactionType) er
 	if err != nil {
 		return err
 	}
-	defer resp.Body.Close()
+	resp.Body.Close()
 	return nil
 }
 
@@ -123,6 +124,68 @@ func sendMessage(chat_id int, text string) error {
 	if err != nil {
 		return err
 	}
-	defer resp.Body.Close()
+	resp.Body.Close()
 	return nil
+}
+
+func sendLLMAnswer(u Update) {
+	url := "https://api.openai.com/v1/chat/completions"
+
+	msgs := LLM_Messages{
+		Model: "gpt-3.5-turbo",
+		Messages: []LLM_Message{
+			{Role: "system", Content: "Представь, что ты в групповом чате друзей и общаешься со своими человеческими братишками."},
+			{Role: "user", Content: u.Message.Text},
+		},
+	}
+
+	json_data, err := json.Marshal(msgs)
+	if err != nil {
+		fmt.Println("[sendLLMAnswer] Error marshalling JSON:", err)
+		return
+	}
+
+	req, err := http.NewRequest("POST", url, bytes.NewBuffer(json_data))
+	if err != nil {
+		fmt.Println("[sendLLMAnswer] Error creating HTTP request:", err)
+		return
+	}
+
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Authorization", "Bearer "+os.Getenv("openai_api_key"))
+
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		fmt.Println("[sendLLMAnswer] Error sending HTTP request:", err)
+		return
+	}
+	defer resp.Body.Close()
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		fmt.Println("[sendLLMAnswer] Error reading HTTP request:", err)
+		return
+	}
+	if resp.StatusCode != 200 {
+		fmt.Println("[sendLLMAnswer] Request Status != 200", string(body))
+		return
+	}
+	var response LLM_Answer
+	err = json.Unmarshal(body, &response)
+	if err != nil {
+		fmt.Println("[sendLLMAnswer] Error serializing response:", err)
+		return
+	}
+	if len(response.Choices) == 0 {
+		fmt.Println("[sendLLMAnswer] Choice is empty:")
+		return
+	}
+
+	output := response.Choices[0].Message.Content
+
+	err = sendMessage(u.Message.Chat.ID, output)
+	if err != nil {
+		fmt.Println("[sendLLMAnswer] Error sending msg to tg:", err)
+	}
 }

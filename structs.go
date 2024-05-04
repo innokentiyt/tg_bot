@@ -75,3 +75,24 @@ type UserInfo struct {
 	Gratz int    `json:"gratz"`
 	Name  string `json:"name"`
 }
+
+// ==== LLM structs
+
+type LLM_Message struct {
+	Role string `json:"role"`
+	Content string `json:"content"`
+}
+
+type LLM_Messages struct {
+	Model string `json:"model"`
+	Messages []LLM_Message `json:"messages"`
+}
+
+type LLM_Answer struct {
+	Choices [] struct {
+		Index int `json:"index"`
+		Message struct {
+			Content string `json:"content"`
+		} `json:"message"`
+	} `json:"choices"`
+}
