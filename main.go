@@ -10,7 +10,7 @@ import (
 var bot_token string
 
 func main() {
-	bot_token = os.Getenv("tg_bot_api")
+	bot_token = os.Getenv("tg_bot_token")
 	channel_id, err := strconv.Atoi(os.Getenv("tg_channel_id"))
 	if err != nil {
 		fmt.Println("Error parsing env variable:", err)

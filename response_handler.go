@@ -11,7 +11,8 @@ import (
 
 var reaction_ok string = "👌"
 var reaction_clown string = "🤡"
-var twenty_last_updates [20]Update
+var twenty_last_messages [20]Message
+var twenty_last_messages_iterator int = 0
 
 func generateReaction(emoji string) []ReactionType {
 	return []ReactionType {
@@ -73,7 +74,7 @@ func processUpdates(updates []Update, channel_id int) {
 			return m.Type == "bot_command"
 		})
 		if idx < 0 {
-			chanceOfRain(update)
+			processNonCommandUpdate(update.Message)
 			continue
 		}
 		if strings.Contains(update.Message.Text, "gratz") {
@@ -87,11 +88,28 @@ func processUpdates(updates []Update, channel_id int) {
 	}
 }
 
-func chanceOfRain(u Update) {
+func processNonCommandUpdate(msg Message) {
+	if len(msg.Text) == 0 {
+		return
+	}
+	pushToTwentyLastMessages(msg)
+	if msg.ReplyMsg.MessageID != 0 && msg.ReplyMsg.From.IsBot {
+		// this is a reply to a bot
+		sendLLMAnswer(msg)
+		return
+	}
 	var probability float32 = 0.01 // 1% chance
 	random_value := rand.Float32()
 	if random_value >= probability {
 		return
 	}
-	sendLLMAnswer(u)
+	sendLLMAnswer(msg)
+}
+
+func pushToTwentyLastMessages(msg Message) {
+	twenty_last_messages_iterator += 1
+	if twenty_last_messages_iterator > len(twenty_last_messages) - 1 {
+		twenty_last_messages_iterator = 0
+	}
+	twenty_last_messages[twenty_last_messages_iterator] = msg
 }
