@@ -15,7 +15,7 @@ var twenty_last_messages [20]Message
 var twenty_last_messages_iterator int = 0
 
 func generateReaction(emoji string) []ReactionType {
-	return []ReactionType {
+	return []ReactionType{
 		{"emoji", emoji},
 	}
 }
@@ -42,7 +42,7 @@ func processTopMsg(u Update) {
 	var msg string
 	type Top struct {
 		UserName string
-		Amount int
+		Amount   int
 	}
 	var users []Top
 	for _, user := range my_db.Users {
@@ -64,9 +64,10 @@ func processUpdates(updates []Update, channel_id int) {
 		if update.Message.Chat.ID != channel_id {
 			continue
 		}
-		
+
 		fmt.Println(update.Message.Text)
-		if update.Message.Text == "грац" {
+		lowercaseText := strings.ToLower(update.Message.Text)
+		if lowercaseText == "грац" {
 			processGratzMsg(update)
 			return
 		}
@@ -108,7 +109,7 @@ func processNonCommandUpdate(msg Message) {
 
 func pushToTwentyLastMessages(msg Message) {
 	twenty_last_messages_iterator += 1
-	if twenty_last_messages_iterator > len(twenty_last_messages) - 1 {
+	if twenty_last_messages_iterator > len(twenty_last_messages)-1 {
 		twenty_last_messages_iterator = 0
 	}
 	twenty_last_messages[twenty_last_messages_iterator] = msg
