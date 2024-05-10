@@ -11,8 +11,6 @@ import (
 
 var reaction_ok string = "👌"
 var reaction_clown string = "🤡"
-var twenty_last_messages [20]Message
-var twenty_last_messages_iterator int = 0
 
 func generateReaction(emoji string) []ReactionType {
 	return []ReactionType{
@@ -64,8 +62,6 @@ func processUpdates(updates []Update, channel_id int) {
 		if update.Message.Chat.ID != channel_id {
 			continue
 		}
-
-		fmt.Println(update.Message.Text)
 		lowercaseText := strings.ToLower(update.Message.Text)
 		if lowercaseText == "грац" {
 			processGratzMsg(update)
@@ -93,7 +89,6 @@ func processNonCommandUpdate(msg Message) {
 	if len(msg.Text) == 0 {
 		return
 	}
-	pushToTwentyLastMessages(msg)
 	if msg.ReplyMsg.MessageID != 0 && msg.ReplyMsg.From.IsBot {
 		// this is a reply to a bot
 		sendLLMAnswer(msg)
@@ -105,12 +100,4 @@ func processNonCommandUpdate(msg Message) {
 		return
 	}
 	sendLLMAnswer(msg)
-}
-
-func pushToTwentyLastMessages(msg Message) {
-	twenty_last_messages_iterator += 1
-	if twenty_last_messages_iterator > len(twenty_last_messages)-1 {
-		twenty_last_messages_iterator = 0
-	}
-	twenty_last_messages[twenty_last_messages_iterator] = msg
 }
