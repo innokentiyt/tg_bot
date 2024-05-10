@@ -124,24 +124,6 @@ func sendMessage(chat_id int, text string) error {
 		return err
 	}
 	defer resp.Body.Close()
-
-	body, err := io.ReadAll(resp.Body)
-	if err != nil {
-		return err
-	}
-	if resp.StatusCode != 200 {
-		return err
-	}
-	fmt.Println(string(body))
-	var tg_response struct {
-		Result Message `json:"result,omitempty"`
-	}
-	err = json.Unmarshal(body, &tg_response)
-	if err != nil {
-		fmt.Println("Error serializing response:\n", err)
-		return err
-	}
-	pushToTwentyLastMessages(tg_response.Result)
 	return nil
 }
 
@@ -151,16 +133,8 @@ func sendLLMAnswer(msg Message) {
 	msgs := LLM_Messages{
 		Model: "gpt-3.5-turbo",
 	}
-	for _, m := range twenty_last_messages {
-		if len(m.Text) == 0 {
-			continue
-		}
-		role := "user"
-		if m.From.IsBot {
-			role = "system"
-		}
-		msgs.Messages = append(msgs.Messages, LLM_Message{Role: role, Content: m.Text})
-	}
+	msgs.Messages = append(msgs.Messages, LLM_Message{Role: "system", Content: "Ты в чате друзей. Отвечай как своим друзьям."})
+	msgs.Messages = append(msgs.Messages, LLM_Message{Role: "user", Content: msg.Text})
 
 	json_data, err := json.Marshal(msgs)
 	if err != nil {
